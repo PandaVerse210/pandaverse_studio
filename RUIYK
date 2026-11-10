@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panda Gamer School</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#091323;color:white;font-family:Arial,sans-serif}
+header{background:#111f33;padding:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+h1,h2{color:#10d99a}
+main{max-width:1000px;margin:auto;padding:20px}
+nav{display:flex;gap:8px;flex-wrap:wrap;padding:15px}
+button,.btn{border:0;padding:11px 15px;border-radius:8px;background:#10d99a;color:#06251b;font-weight:bold;cursor:pointer;text-decoration:none;display:inline-block}
+button:hover,.btn:hover{filter:brightness(1.15)}
+input,textarea{width:100%;padding:12px;margin:7px 0 14px;background:#0b1729;color:white;border:1px solid #34445b;border-radius:8px}
+.card{background:#14243a;border:1px solid #30415a;padding:18px;border-radius:12px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.tab{display:none}.tab.active{display:block}
+.hidden{display:none!important}
+#login{max-width:400px;margin:70px auto;padding:25px}
+#login h1{text-align:center}
+small{color:#aab9ce}
+.gold{color:#ffc247}
+.modal{position:fixed;inset:0;background:#000d;display:flex;align-items:center;justify-content:center;padding:15px;z-index:10}
+.modal .card{width:100%;max-width:500px;max-height:90vh;overflow:auto}
+.chat-box{background:#0b1729;border:1px solid #34445b;border-radius:8px;height:350px;overflow-y:auto;padding:12px;margin-bottom:10px;display:flex;flex-direction:column;gap:8px}
+.chat-msg{background:#1c2e47;padding:8px 12px;border-radius:8px;max-width:85%;word-break:break-word}
+.chat-msg.me{background:#10d99a;color:#06251b;align-self:flex-end}
+.chat-input-container{display:flex;gap:8px;align-items:center}
+.chat-input-container input{margin:0}
+.chat-input-container button{white-space:nowrap}
+.gold{font-weight:bold}
+.muted{color:#aab9ce}
+.danger{background:#a83248;color:white}
+footer{text-align:center;padding:25px;color:#aab9ce}
+</style>
+</head>
+<body>
+
+<section id="login" class="card">
+<h1>🐼 Panda Gamer</h1>
+<p style="text-align:center">ESCOLA • JOGOS • LIVROS</p>
+<h3 id="auth-title">Entrar</h3>
+<input id="email" type="email" placeholder="E-mail">
+<input id="password" type="password" placeholder="Senha (mínimo 6 caracteres)">
+<button onclick="auth()" id="auth-btn">Entrar</button>
+<button onclick="toggleRegister()" style="background:#263c55;color:white">Criar conta</button>
+<p class="muted" id="auth-message"></p>
+</section>
+
+<div id="app" class="hidden">
+<header>
+<div>
+<h2>🐼 Panda Gamer School</h2>
+<small id="welcome"></small>
+</div>
+<div class="gold">🪙 <span id="coins">0</span> P-Coins</div>
+<button onclick="logout()">Sair</button>
+</header>
+
+<nav>
+<button onclick="tab('home')">🏠 Início</button>
+<button onclick="tab('books')">📚 Livros</button>
+<button onclick="tab('games')">🎮 Jogos</button>
+<button onclick="tab('chat')">💬 Chat</button>
+<button onclick="tab('shop')">🛍️ Loja</button>
+<button onclick="tab('ranking')">🏆 Ranking</button>
+<button onclick="tab('profile')">👤 Perfil</button>
+<button onclick="admin()">👑 Admin</button>
+</nav>
+
+<main>
+<section id="home" class="tab active">
+<div class="card">
+<h1>Bem-vindo ao Mundo Panda! 🐼</h1>
+<p>Leia, jogue, crie e ganhe recompensas!</p>
+<p>Você começa com 100 P-Coins. Divirta-se!</p>
+</div>
+<div class="grid">
+<div class="card">📚<h3>Biblioteca</h3><p>Crie suas próprias histórias.</p><button onclick="tab('books')">Acessar</button></div>
+<div class="card">🎮<h3>Arena Gamer</h3><p>Compartilhe seus jogos.</p><button onclick="tab('games')">Acessar</button></div>
+<div class="card">💬<h3>Chat Panda</h3><p>Converse com a galera.</p><button onclick="tab('chat')">Acessar</button></div>
+<div class="card">🪙<h3>Suas moedas</h3><p>Conquiste recompensas.</p><button onclick="tab('shop')">Ver loja</button></div>
+</div>
+</section>
+
+<section id="books" class="tab">
+<h2>📚 Biblioteca Panda</h2>
+<button onclick="newBook()">+ Criar livro</button>
+<div id="book-list" class="grid"></div>
+</section>
+
+<section id="games" class="tab">
+<h2>🎮 Arena Gamer</h2>
+<button onclick="newGame()">+ Publicar jogo</button>
+<div id="game-list" class="grid"></div>
+</section>
+
+<section id="chat" class="tab">
+<h2>💬 Chat da Galera Gamer</h2>
+<div class="card">
+<div id="chat-box" class="chat-box"></div>
+<div class="chat-input-container">
+<input id="chat-input" placeholder="Digite uma mensagem..." maxlength="300">
+<button onclick="sendChatMessage()">Enviar</button>
+</div>
+</div>
+</section>
+
+<section id="shop" class="tab">
+<h2>🛍️ Loja Panda</h2>
+<p>Troque suas P-Coins por itens especiais!</p>
+<div id="shop-list" class="grid"></div>
+</section>
+
+<section id="ranking" class="tab">
+<h2>🏆 Ranking</h2>
+<div id="ranking-list" class="card"></div>
+</section>
+
+<section id="profile" class="tab">
+<h2>👤 Meu perfil</h2>
+<div class="card">
+<h3>🐼 <span id="profile-email"></span></h3>
+<p>Moedas: <span id="profile-coins"></span> 🪙</p>
+<p>Nível: <span id="level"></span></p>
+<h3>Minhas conquistas</h3>
+<p id="profile-purchases"></p>
+</div>
+</section>
+</main>
+<footer>🐼 Panda Gamer School • Aprender, jogar e criar!</footer>
+</div>
+
+<div id="modal" class="modal hidden">
+<div class="card">
+<h2 id="modal-title"></h2>
+<div id="modal-content"></div>
+<button onclick="closeModal()">Fechar</button>
+</div>
+</div>
+
+<script>
+const ADMIN_PASSWORD = "PandaAdmin2026";
+
+let users = JSON.parse(localStorage.getItem("p_users") || "[]");
+let books = JSON.parse(localStorage.getItem("p_books") || "[]");
+let games = JSON.parse(localStorage.getItem("p_games") || "[]");
+let chatMessages = JSON.parse(localStorage.getItem("p_chat") || "[]");
+let user = null;
+let register = false;
+let reading = null;
+
+const items = [
+["Avatar Panda",50,"🎧"],
+["Mouse Gamer",100,"🖱️"],
+["Teclado RGB",300,"⌨️"],
+["Panda Pro",500,"👑"],
+["Panda Dourado",750,"🐼"]
+];
+
+function safe(value){
+return String(value ?? "").replace(/[&<>"']/g, c => ({
+"&":"&amp;","<":"&lt;",">":"&gt;",
+'"':"&quot;","'":"&#39;"
+}[c]));
+}
+
+function save(){
+localStorage.setItem("p_users",JSON.stringify(users));
+localStorage.setItem("p_books",JSON.stringify(books));
+localStorage.setItem("p_games",JSON.stringify(games));
+localStorage.setItem("p_chat",JSON.stringify(chatMessages));
+}
+
+function auth(){
+const email = document.getElementById("email").value.trim().toLowerCase();
+const password = document.getElementById("password").value;
+const message = document.getElementById("auth-message");
+
+if(!email || !email.includes("@") || password.length < 6){
+message.textContent = "Informe um e-mail válido e uma senha com pelo menos 6 caracteres.";
+return;
+}
+
+if(register){
+if(users.some(u => u.email === email)){
+message.textContent = "Este e-mail já está cadastrado!";
+return;
+}
+user = {email,password,coins:100,rewards:[],purchases:[]};
+users.push(user);
+save();
+alert("Conta criada! Você ganhou 100 P-Coins!");
+}else{
+user = users.find(u => u.email === email && u.password === password);
+if(!user){
+message.textContent = "E-mail ou senha incorretos.";
+return;
+}
+}
+message.textContent = "";
+start();
+}
+
+function toggleRegister(){
+register = !register;
+document.getElementById("auth-title").textContent = register ? "Criar conta" : "Entrar";
+document.getElementById("auth-btn").textContent = register ? "Cadastrar" : "Entrar";
+document.getElementById("auth-message").textContent = "";
+}
+
+function start(){
+document.getElementById("login").classList.add("hidden");
+document.getElementById("app").classList.remove("hidden");
+render();
+}
+
+function logout(){
+user = null;
+document.getElementById("app").classList.add("hidden");
+document.getElementById("login").classList.remove("hidden");
+document.getElementById("password").value = "";
+}
+
+function tab(id){
+document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+if(id === "chat") renderChat();
+}
+
+function update(){
+document.getElementById("welcome").textContent = "Olá, " + user.email;
+document.getElementById("coins").textContent = user.coins;
+document.getElementById("profile-email").textContent = user.email;
+document.getElementById("profile-coins").textContent = user.coins;
+document.getElementById("level").textContent = Math.floor(user.coins / 200) + 1;
+document.getElementById("profile-purchases").textContent =
+user.purchases.length ? user.purchases.join(", ") : "Nenhuma compra ainda.";
+save();
+}
+
+function render(){
+update();
+renderBooks();
+renderGames();
+renderShop();
+renderRanking();
+renderChat();
+}
+
+function show(title,content){
+document.getElementById("modal-title").textContent = title;
+document.getElementById("modal-content").innerHTML = content;
+document.getElementById("modal").classList.remove("hidden");
+}
+
+function closeModal(){
+document.getElementById("modal").classList.add("hidden");
+}
+
+function newBook(){
+show("Criar livro",`
+<label>Título do livro</label>
+<input id="book-title" maxlength="80" placeholder="Digite o título">
+<label>Sua história</label>
+<textarea id="book-content" rows="6" maxlength="10000" placeholder="Escreva sua história..."></textarea>
+<button onclick="saveBook()">Publicar livro</button>
+`);
+}
+
+function saveBook(){
+const title = document.getElementById("book-title").value.trim();
+const content = document.getElementById("book-content").value.trim();
+if(!title || !content) return alert("Preencha o título e a história!");
+books.push({
+id:Date.now(),
+title,content,
+author:user.email
+});
+save();
+renderBooks();
+closeModal();
+alert("Livro publicado!");
+}
+
+function renderBooks(){
+document.getElementById("book-list").innerHTML =
+books.map(b => `
+<div class="card">
+📘<h3>${safe(b.title)}</h3>
+<small>Autor: ${safe(b.author)}</small>
+<p><button onclick="readBook(${Number(b.id)})">Ler livro</button></p>
+</div>
+`).join("") || "<p>Nenhum livro publicado ainda.</p>";
+}
+
+function readBook(id){
+const b = books.find(x => x.id === id);
+if(!b) return;
+reading = id;
+const earned = (user.rewards || []).includes("book" + id);
+show(b.title,`
+<p>Autor: ${safe(b.author)}</p>
+<p style="white-space:pre-wrap">${safe(b.content)}</p>
+<button ${earned ? "disabled" : ""} onclick="rewardBook()">
+${earned ? "Recompensa recebida" : "Concluir leitura (+10 moedas)"}
+</button>
+`);
+}
+
+function rewardBook(){
+const key = "book" + reading;
+user.rewards = user.rewards || [];
+if(user.rewards.includes(key)) return;
+user.rewards.push(key);
+user.coins += 10;
+render();
+readBook(reading);
+}
+
+function newGame(){
+show("Publicar jogo",`
+<label>Nome do jogo</label>
+<input id="game-title" maxlength="80" placeholder="Nome do jogo">
+<label>Link do jogo</label>
+<input id="game-url" placeholder="https://exemplo.com">
+<button onclick="saveGame()">Publicar jogo</button>
+`);
+}
+
+function saveGame(){
+const title = document.getElementById("game-title").value.trim();
+const url = document.getElementById("game-url").value.trim();
+if(!title || !url) return alert("Preencha todos os campos!");
+try{
+const parsed = new URL(url);
+if(!["http:","https:"].includes(parsed.protocol)) throw Error();
+games.push({
+id:Date.now(),
+title,
+url:parsed.href,
+author:user.email
+});
+save();
+renderGames();
+closeModal();
+alert("Jogo publicado!");
+}catch(e){
+alert("Link inválido! Use um endereço HTTP ou HTTPS.");
+}
+}
+
+function renderGames(){
+document.getElementById("game-list").innerHTML =
+games.map(g => `
+<div class="card">
+🎮<h3>${safe(g.title)}</h3>
+<small>Publicado por: ${safe(g.author)}</small>
+<p><a class="btn" href="${safe(g.url)}" target="_blank" rel="noopener noreferrer">Jogar agora</a></p>
+</div>
+`).join("") || "<p>Nenhum jogo publicado ainda.</p>";
+}
+
+function renderShop(){
+document.getElementById("shop-list").innerHTML =
+items.map((item,index) => `
+<div class="card" style="text-align:center">
+<div style="font-size:38px">${item[2]}</div>
+<h3>${safe(item[0])}</h3>
+<p class="gold">🪙 ${item[1]} P-Coins</p>
+<button onclick="buyShopItem(${index})">Comprar</button>
+</div>
+`).join("");
+}
+
+function buyShopItem(index){
+const item = items[index];
+if(!item) return;
+user.purchases = user.purchases || [];
+if(user.purchases.includes(item[0])){
+return alert("Você já possui este item!");
+}
+if(user.coins < item[1]){
+return alert("Você não tem moedas suficientes!");
+}
+if(!confirm("Comprar " + item[0] + " por " + item[1] + " P-Coins?")) return;
+user.coins -= item[1];
+user.purchases.push(item[0]);
+render();
+alert("Você comprou " + item[0] + " com sucesso!");
+}
+
+function renderRanking(){
+const sorted = [...users].sort((a,b) => b.coins - a.coins);
+document.getElementById("ranking-list").innerHTML =
+"<h3>🏆 Classificação Geral</h3>" +
+sorted.map((u,i) => `
+<p>${i+1}º - 👤 ${safe(u.email)}
+<span class="gold"> | 🪙 ${Number(u.coins)||0} P-Coins</span></p>
+`).join("") || "Nenhum aluno cadastrado.";
+}
+
+function renderChat(){
+const chatBox = document.getElementById("chat-box");
+if(!chatBox) return;
+chatBox.innerHTML = chatMessages.map(m => {
+const isMe = m.sender === user.email;
+return `
+<div class="chat-msg ${isMe ? "me" : ""}">
+<small style="display:block;font-size:10px">${safe(m.sender)}</small>
+<span>${safe(m.text)}</span>
+</div>
+`;
+}).join("");
+chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function sendChatMessage(){
+const input = document.getElementById("chat-input");
+const message = input.value.trim();
+if(!message) return;
+chatMessages.push({
+sender:user.email,
+text:message,
+time:Date.now()
+});
+chatMessages = chatMessages.slice(-300);
+input.value = "";
+save();
+renderChat();
+}
+
+document.getElementById("chat-input").addEventListener("keydown",e => {
+if(e.key === "Enter") sendChatMessage();
+});
+
+function admin(){
+const password = prompt("Digite a senha do administrador:");
+if(password !== ADMIN_PASSWORD) return alert("Senha incorreta!");
+
+const action = prompt(
+"PAINEL ADMINISTRATIVO\n\n1 - Dar moedas\n2 - Ver alunos\n3 - Excluir livro\n4 - Excluir jogo"
+);
+
+if(action === "1"){
+const email = prompt("E-mail exato do aluno:");
+if(!email) return;
+const target = users.find(u => u.email === email.trim().toLowerCase());
+if(!target) return alert("Aluno não encontrado!");
+
+const amount = Number(prompt("Quantidade de moedas:"));
+if(!Number.isInteger(amount) || amount <= 0 || amount > 100000){
+return alert("Quantidade inválida!");
+}
+target.coins += amount;
+if(user.email === target.email) user.coins = target.coins;
+save();
+render();
+alert("Moedas adicionadas!");
+}
+else if(action === "2"){
+alert(users.map(u => u.email + " - " + u.coins + " moedas").join("\n") || "Nenhum aluno.");
+}
+else if(action === "3"){
+const id = Number(prompt("ID do livro que deseja excluir:\n" +
+books.map(b => b.id + " - " + b.title).join("\n")));
+if(!books.some(b => b.id === id)) return alert("Livro não encontrado!");
+books = books.filter(b => b.id !== id);
+save();
+renderBooks();
+alert("Livro removido!");
+}
+else if(action === "4"){
+const id = Number(prompt("ID do jogo que deseja excluir:\n" +
+games.map(g => g.id + " - " + g.title).join("\n")));
+if(!games.some(g => g.id === id)) return alert("Jogo não encontrado!");
+games = games.filter(g => g.id !== id);
+save();
+renderGames();
+alert("Jogo removido!");
+}
+}
+</script>
+</body>
+</html>
